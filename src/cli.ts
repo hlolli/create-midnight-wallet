@@ -159,7 +159,7 @@ function colorizeJson(json: string): string {
 export function runCli(args: string[], runtime?: Partial<CliRuntime>): number {
   const stdout = runtime?.stdout ?? console.log;
   const stderr = runtime?.stderr ?? console.error;
-  const stdoutIsTTY = runtime?.stdoutIsTTY ?? Boolean(process.stdout.isTTY);
+  const stdoutIsTTY = runtime?.stdoutIsTTY ?? (runtime?.stdout ? false : Boolean(process.stdout.isTTY));
   const env = runtime?.env ?? process.env;
   const generateWallet = runtime?.generateWallet ?? generateMidnightWallet;
 
