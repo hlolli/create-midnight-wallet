@@ -37,3 +37,23 @@ node dist/bin.js --network preview
 bun publish --dry-run
 bun publish
 ```
+
+## Nix
+
+Run the CLI directly from the repository with:
+
+```sh
+nix run github:hlolli/create-midnight-wallet -- --network mainnet
+```
+
+From a local checkout:
+
+```sh
+nix run . -- --network preprod
+```
+
+When dependencies change, regenerate the Nix dependency expression with:
+
+```sh
+bunx bun2nix -o bun.nix
+```
