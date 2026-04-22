@@ -14,7 +14,13 @@ Supported network ids:
 - `preprod`
 - `mainnet`
 
-The command prints JSON containing the selected network, seed, unshielded address, and derived role keys.
+The command prints JSON containing:
+
+- public unshielded, shielded, and Dust addresses
+- related public keys
+- the seed and derived secret keys
+
+Treat `seed` and `secretKeys` as wallet control material.
 
 ## Development
 

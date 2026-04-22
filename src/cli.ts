@@ -10,10 +10,9 @@ export type CliOptions = {
 type WalletOutput = {
   network: NetworkId;
   seed: string;
-  addresses: {
-    unshieldedBech32: string;
-  };
-  keys: DerivedWallet['roleKeysHex'];
+  addresses: DerivedWallet['addresses'];
+  publicKeys: DerivedWallet['publicKeys'];
+  secretKeys: DerivedWallet['secretKeys'];
 };
 
 type CliRuntime = {
@@ -99,10 +98,9 @@ function createOutput(wallet: DerivedWallet): WalletOutput {
   return {
     network: wallet.network,
     seed: wallet.seedHex,
-    addresses: {
-      unshieldedBech32: wallet.unshieldedAddressBech32,
-    },
-    keys: wallet.roleKeysHex,
+    addresses: wallet.addresses,
+    publicKeys: wallet.publicKeys,
+    secretKeys: wallet.secretKeys,
   };
 }
 
@@ -127,9 +125,9 @@ function renderLegend(colorEnabled: boolean): string {
 
   return [
     `${commentPrefix} ${paint('Output guide', `${ANSI.bold}${ANSI.cyan}`, colorEnabled)}`,
-    `${commentPrefix} ${paint('public/shareable', ANSI.green, colorEnabled)}: addresses.unshieldedBech32`,
-    `${commentPrefix} ${paint('secret/do not share', ANSI.red, colorEnabled)}: seed, keys.zswap, keys.nightExternal, keys.dust`,
-    `${commentPrefix} No private addresses are printed here. The unshielded bech32 address is public; the seed and all listed keys are sensitive.`,
+    `${commentPrefix} ${paint('public/shareable', ANSI.green, colorEnabled)}: addresses.*, publicKeys.*`,
+    `${commentPrefix} ${paint('secret/do not share', ANSI.red, colorEnabled)}: seed, secretKeys.zswap, secretKeys.nightExternal, secretKeys.dust`,
+    `${commentPrefix} Midnight does not use separate "private address" strings here. Public addresses are under addresses; control comes from the seed and secret keys.`,
   ].join('\n');
 }
 

@@ -34,8 +34,27 @@ test('runCli writes JSON output', () => {
     generateWallet: (network) => ({
       network,
       seedHex: 'ab'.repeat(32),
-      unshieldedAddressBech32: 'midnight1example',
-      roleKeysHex: {
+      addresses: {
+        unshielded: {
+          bech32: 'mn_addr1example',
+          hex: '12'.repeat(32),
+        },
+        shielded: {
+          bech32: 'mn_shield-addr1example',
+          coinPublicKeyBech32: 'mn_shield-cpk1example',
+          encryptionPublicKeyBech32: 'mn_shield-epk1example',
+        },
+        dust: {
+          bech32: 'mn_dust1example',
+        },
+      },
+      publicKeys: {
+        unshielded: '34'.repeat(32),
+        shieldedCoin: '56'.repeat(32),
+        shieldedEncryption: '78'.repeat(32),
+        dust: '123456789',
+      },
+      secretKeys: {
         zswap: 'cd'.repeat(32),
         nightExternal: 'ef'.repeat(32),
         dust: '01'.repeat(32),
@@ -50,9 +69,26 @@ test('runCli writes JSON output', () => {
     network: 'mainnet',
     seed: 'ab'.repeat(32),
     addresses: {
-      unshieldedBech32: 'midnight1example',
+      unshielded: {
+        bech32: 'mn_addr1example',
+        hex: '12'.repeat(32),
+      },
+      shielded: {
+        bech32: 'mn_shield-addr1example',
+        coinPublicKeyBech32: 'mn_shield-cpk1example',
+        encryptionPublicKeyBech32: 'mn_shield-epk1example',
+      },
+      dust: {
+        bech32: 'mn_dust1example',
+      },
     },
-    keys: {
+    publicKeys: {
+      unshielded: '34'.repeat(32),
+      shieldedCoin: '56'.repeat(32),
+      shieldedEncryption: '78'.repeat(32),
+      dust: '123456789',
+    },
+    secretKeys: {
       zswap: 'cd'.repeat(32),
       nightExternal: 'ef'.repeat(32),
       dust: '01'.repeat(32),
@@ -72,8 +108,27 @@ test('runCli shows a legend and colorized JSON on a terminal', () => {
     generateWallet: (network) => ({
       network,
       seedHex: 'ab'.repeat(32),
-      unshieldedAddressBech32: 'midnight1example',
-      roleKeysHex: {
+      addresses: {
+        unshielded: {
+          bech32: 'mn_addr1example',
+          hex: '12'.repeat(32),
+        },
+        shielded: {
+          bech32: 'mn_shield-addr1example',
+          coinPublicKeyBech32: 'mn_shield-cpk1example',
+          encryptionPublicKeyBech32: 'mn_shield-epk1example',
+        },
+        dust: {
+          bech32: 'mn_dust1example',
+        },
+      },
+      publicKeys: {
+        unshielded: '34'.repeat(32),
+        shieldedCoin: '56'.repeat(32),
+        shieldedEncryption: '78'.repeat(32),
+        dust: '123456789',
+      },
+      secretKeys: {
         zswap: 'cd'.repeat(32),
         nightExternal: 'ef'.repeat(32),
         dust: '01'.repeat(32),
@@ -83,16 +138,33 @@ test('runCli shows a legend and colorized JSON on a terminal', () => {
 
   expect(exitCode).toBe(0);
   expect(stderr).toHaveLength(1);
-  expect(stripAnsi(stderr[0])).toContain('public/shareable: addresses.unshieldedBech32');
-  expect(stripAnsi(stderr[0])).toContain('secret/do not share: seed, keys.zswap, keys.nightExternal, keys.dust');
+  expect(stripAnsi(stderr[0])).toContain('public/shareable: addresses.*, publicKeys.*');
+  expect(stripAnsi(stderr[0])).toContain('secret/do not share: seed, secretKeys.zswap, secretKeys.nightExternal, secretKeys.dust');
   expect(stdout[0]).toContain('\u001b[');
   expect(JSON.parse(stripAnsi(stdout[0]))).toEqual({
     network: 'preview',
     seed: 'ab'.repeat(32),
     addresses: {
-      unshieldedBech32: 'midnight1example',
+      unshielded: {
+        bech32: 'mn_addr1example',
+        hex: '12'.repeat(32),
+      },
+      shielded: {
+        bech32: 'mn_shield-addr1example',
+        coinPublicKeyBech32: 'mn_shield-cpk1example',
+        encryptionPublicKeyBech32: 'mn_shield-epk1example',
+      },
+      dust: {
+        bech32: 'mn_dust1example',
+      },
     },
-    keys: {
+    publicKeys: {
+      unshielded: '34'.repeat(32),
+      shieldedCoin: '56'.repeat(32),
+      shieldedEncryption: '78'.repeat(32),
+      dust: '123456789',
+    },
+    secretKeys: {
       zswap: 'cd'.repeat(32),
       nightExternal: 'ef'.repeat(32),
       dust: '01'.repeat(32),
@@ -106,8 +178,17 @@ test('generateMidnightWallet derives keys for a deterministic seed', () => {
 
   expect(wallet.network).toBe('preview');
   expect(wallet.seedHex).toHaveLength(64);
-  expect(wallet.unshieldedAddressBech32.length).toBeGreaterThan(0);
-  expect(wallet.roleKeysHex.zswap).toMatch(/^[0-9a-f]+$/);
-  expect(wallet.roleKeysHex.nightExternal).toMatch(/^[0-9a-f]+$/);
-  expect(wallet.roleKeysHex.dust).toMatch(/^[0-9a-f]+$/);
+  expect(wallet.addresses.unshielded.bech32).toStartWith('mn_addr_preview1');
+  expect(wallet.addresses.unshielded.hex).toMatch(/^[0-9a-f]+$/);
+  expect(wallet.addresses.shielded.bech32).toStartWith('mn_shield-addr_preview1');
+  expect(wallet.addresses.shielded.coinPublicKeyBech32).toStartWith('mn_shield-cpk_preview1');
+  expect(wallet.addresses.shielded.encryptionPublicKeyBech32).toStartWith('mn_shield-epk_preview1');
+  expect(wallet.addresses.dust.bech32).toStartWith('mn_dust_preview1');
+  expect(wallet.publicKeys.unshielded).toMatch(/^[0-9a-f]+$/);
+  expect(wallet.publicKeys.shieldedCoin).toMatch(/^[0-9a-f]+$/);
+  expect(wallet.publicKeys.shieldedEncryption).toMatch(/^[0-9a-f]+$/);
+  expect(wallet.publicKeys.dust).toMatch(/^[0-9]+$/);
+  expect(wallet.secretKeys.zswap).toMatch(/^[0-9a-f]+$/);
+  expect(wallet.secretKeys.nightExternal).toMatch(/^[0-9a-f]+$/);
+  expect(wallet.secretKeys.dust).toMatch(/^[0-9a-f]+$/);
 });
