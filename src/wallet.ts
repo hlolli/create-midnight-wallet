@@ -2,7 +2,7 @@ import { Buffer } from 'node:buffer';
 
 import { setNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
 import { toHex } from '@midnight-ntwrk/midnight-js-utils';
-import { DustSecretKey, ZswapSecretKeys } from '@midnight-ntwrk/ledger-v8';
+import { addressFromKey, DustSecretKey, signatureVerifyingKey, ZswapSecretKeys } from '@midnight-ntwrk/ledger-v8';
 import { HDWallet, Roles, generateRandomSeed } from '@midnight-ntwrk/wallet-sdk-hd';
 import {
   DustAddress,
@@ -10,8 +10,8 @@ import {
   ShieldedAddress,
   ShieldedCoinPublicKey,
   ShieldedEncryptionPublicKey,
+  UnshieldedAddress,
 } from '@midnight-ntwrk/wallet-sdk-address-format';
-import { createKeystore } from '@midnight-ntwrk/wallet-sdk-unshielded-wallet';
 
 export const NETWORK_IDS = ['preview', 'preprod', 'mainnet'] as const;
 
@@ -55,6 +55,23 @@ function hex(bytes: Uint8Array): string {
   return Buffer.from(bytes).toString('hex');
 }
 
+function deriveUnshielded(secretKey: Uint8Array, networkId: NetworkId): {
+  addressBech32: string;
+  addressHex: string;
+  publicKey: string;
+} {
+  const signingKey = hex(secretKey);
+  const publicKey = signatureVerifyingKey(signingKey);
+  const addressHex = addressFromKey(publicKey);
+  const address = new UnshieldedAddress(Buffer.from(addressHex, 'hex'));
+
+  return {
+    addressBech32: UnshieldedAddress.codec.encode(networkId, address).toString(),
+    addressHex,
+    publicKey,
+  };
+}
+
 export function generateMidnightWallet(
   networkId: NetworkId,
   seed: Uint8Array = generateRandomSeed(),
@@ -79,7 +96,7 @@ export function generateMidnightWallet(
     const keys = derived.keys;
 
     setNetworkId(networkId);
-    const unshieldedKeystore = createKeystore(keys[Roles.NightExternal], networkId);
+    const unshielded = deriveUnshielded(keys[Roles.NightExternal], networkId);
     const zswapSecretKeys = ZswapSecretKeys.fromSeed(keys[Roles.Zswap]);
     const shieldedCoinPublicKey = ShieldedCoinPublicKey.fromHexString(zswapSecretKeys.coinPublicKey);
     const shieldedEncryptionPublicKey = ShieldedEncryptionPublicKey.fromHexString(
@@ -94,8 +111,8 @@ export function generateMidnightWallet(
       seedHex,
       addresses: {
         unshielded: {
-          bech32: unshieldedKeystore.getBech32Address().toString(),
-          hex: unshieldedKeystore.getAddress(),
+          bech32: unshielded.addressBech32,
+          hex: unshielded.addressHex,
         },
         shielded: {
           bech32: MidnightBech32m.encode(networkId, shieldedAddress).toString(),
@@ -109,7 +126,7 @@ export function generateMidnightWallet(
         },
       },
       publicKeys: {
-        unshielded: unshieldedKeystore.getPublicKey(),
+        unshielded: unshielded.publicKey,
         shieldedCoin: zswapSecretKeys.coinPublicKey,
         shieldedEncryption: zswapSecretKeys.encryptionPublicKey,
         dust: dustSecretKey.publicKey.toString(),
